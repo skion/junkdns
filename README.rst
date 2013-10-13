@@ -158,6 +158,10 @@ a new resolver only requires two functions and their implementation should be
 straightforward. The `resolvers/publicsuffix.py` module can be used as an example
 for now.  
 
+.. image:: https://api.travis-ci.org/skion/junkdns.png
+   :alt: Travis build status
+   :target: https://travis-ci.org/skion/junkdns/
+
 .. _DNSPython: http://www.dnspython.org/
 
 
