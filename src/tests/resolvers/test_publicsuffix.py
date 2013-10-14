@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 
 import unittest
+import dns.opcode
 import dns.message
 from textwrap import dedent
 import resolvers.publicsuffix
-
 
 
 class PublicSuffixTest(unittest.TestCase):
@@ -36,6 +36,45 @@ class PublicSuffixTest(unittest.TestCase):
         return mr
 
 
+    def test_publicsuffix_fail(self):
+        """
+        Test if exception in publicsuffix gives SERVFAIL.
+        """
+
+        class MyException(Exception):
+            pass
+        
+        def stub(name):
+            raise MyException("Test")
+
+        old = resolvers.publicsuffix.psl.get_public_suffix
+
+        try:
+            # easy way to fake an exception
+            resolvers.publicsuffix.psl.get_public_suffix = stub
+
+            q = """
+                id 101
+                opcode QUERY
+                flags RD RA
+                ;QUESTION
+                test.com. IN PTR
+                """
+            a = """
+                id 101
+                opcode QUERY
+                rcode SERVFAIL
+                flags QR RD
+                ;QUESTION
+                test.com. IN PTR
+                """
+
+            self.query(q, a)
+
+        finally:
+            resolvers.publicsuffix.psl.get_public_suffix = old
+
+
     def test_validation_rd(self):
         """
         For interoperability with clients, resolver should not refuse RD bit.
@@ -56,6 +95,66 @@ class PublicSuffixTest(unittest.TestCase):
             test.com. IN PTR
             ;ANSWER
             test.com. 14400 IN PTR test.com.
+            """
+        self.query(q, a)
+
+
+    def test_validation_bad_opcode(self):
+        """
+        Give exception when invalid opcode is given.
+        """
+        q = """
+            id 101
+            opcode BEEF
+            flags RD RA
+            ;QUESTION
+            test.com. IN PTR
+            """
+        self.assertRaises(dns.opcode.UnknownOpcode, self.query, q)
+
+
+    def test_validation_no_query(self):
+        """
+        Give error when non-QUERY opcode is given.
+        """
+        q = """
+            id 101
+            opcode UPDATE
+            flags RD RA
+            ;QUESTION
+            test.com. IN PTR
+            """
+        a = """
+            id 101
+            opcode UPDATE
+            rcode NOTIMP
+            flags QR RD
+            ;QUESTION
+            test.com. IN PTR
+            """
+        self.query(q, a)
+
+
+    def test_validation_multi_question(self):
+        """
+        Give error when multiple questions are asked.
+        """
+        q = """
+            id 101
+            opcode QUERY
+            flags RD RA
+            ;QUESTION
+            test1.com. IN PTR
+            test2.com. IN PTR
+            """
+        a = """
+            id 101
+            opcode QUERY
+            rcode FORMERR
+            flags QR RD
+            ;QUESTION
+            test1.com. IN PTR
+            test2.com. IN PTR
             """
         self.query(q, a)
 
@@ -326,5 +425,4 @@ class PublicSuffixTest(unittest.TestCase):
             test.co.uk. 14400 IN PTR test.co.uk.
             """
         self.query(q, a)
-
 
