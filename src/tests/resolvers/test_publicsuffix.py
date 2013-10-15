@@ -5,6 +5,7 @@ import dns.opcode
 import dns.message
 from textwrap import dedent
 import resolvers.publicsuffix
+import argparse
 
 
 class PublicSuffixTest(unittest.TestCase):
@@ -34,6 +35,25 @@ class PublicSuffixTest(unittest.TestCase):
                 raise
 
         return mr
+
+
+    def test_configure_parser(self):
+        """
+        Test if argparse stuff works.
+        """
+        parser = argparse.ArgumentParser()
+        parser = resolvers.publicsuffix.configure_parser(parser)
+
+        url = "http://foo.bar.invalid/"
+
+        # default args
+        args = parser.parse_args([])
+        args.func(args)
+        self.assertNotEqual(resolvers.publicsuffix.LIST_URL, url)
+
+        args = parser.parse_args(["--fetch", url])
+        args.func(args)
+        self.assertEqual(resolvers.publicsuffix.LIST_URL, url)
 
 
     def test_publicsuffix_fail(self):
