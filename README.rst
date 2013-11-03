@@ -6,15 +6,11 @@ JunkDNS README
 
 Introduction
 ------------
-`JunkDNS`, analogue to junk DNA, is a simple DNS server that serves information 
-normally not coded in DNS.
+`JunkDNS`, analogue to junk DNA, is a simple DNS server that serves information normally not coded in DNS.
 
-Its intended use is to run behind a local caching DNS resolver, and thus allow
-local clients to perform queries without any configuration or reliance on 
-bindings for some other key-value store.
+Its intended use is to run behind a local caching DNS resolver, and thus allow local clients to perform queries without any configuration or reliance on bindings for some other key-value store.
 
-Included is a resolver for PublicSuffix_ extensions, and one for LOCODE_ 
-location identifiers is planned.
+Included is a resolver for PublicSuffix_ extensions, and one for LOCODE_ location identifiers is planned.
 
 .. _PublicSuffix: http://publicsuffix.org/
 .. _LOCODE: http://www.unece.org/cefact/locode/welcome.html
@@ -22,8 +18,7 @@ location identifiers is planned.
 
 Usage
 -----
-`JunkDNS` is started by selecting one of the available resolver modules as an
-argument. Check the command line help for available options::
+`JunkDNS` is started by selecting one of the available resolver modules as an argument. Check the command line help for available options::
 
    $ python junkdns.py --help
    usage: junkdns [-h] [--host HOST] [--port PORT] [--origin ORIGIN] [--tcp]
@@ -51,8 +46,7 @@ argument. Check the command line help for available options::
        publicsuffix        a resolver to query top-level domains via
                            publicsuffix.org
 
-Resolver-specific details and command line options can be queried by placing
-the `--help` option *after* the resolver name::
+Resolver-specific details and command line options can be queried by placing the `--help` option *after* the resolver name::
 
    $ python junkdns.py publicsuffix --help
    usage: junkdns publicsuffix [-h] [--ttl TTL] [--fetch [URL]] [--notxt]
@@ -102,20 +96,15 @@ will answer with a pointer to the domain part of the host::
 
 Gateway configuration
 ---------------------
-In the above setup, the client (`dig` in this case) needs to be configured to
-connect to the special DNS server, which in many cases is cumbersome. If you
-want to avoid this, configure a gateway DNS server or recursor to delegate 
-part of the DNS namespace to `JunkDNS` instead.
+In the above setup, the client (`dig` in this case) needs to be configured to connect to the special DNS server, which in many cases is cumbersome. If you want to avoid this, configure a gateway DNS server or recursor to delegate part of the DNS namespace to `JunkDNS` instead.
 
 - Choose a domain to delegate, e.g. `_tldns.mydomain.invalid`
-- Configure your DNS recursor to forward any queries for the above domain to
-  `JunkDNS`
+- Configure your DNS recursor to forward any queries for the above domain to `JunkDNS`
 - Configure `JunkDNS` with the `--origin` option to run on the delegated domain::
 
     $ python junkdns.py -D info -O _tldns.mydomain.invalid publicsuffix
 
-After that, and assuming the gateway is configured as the system DNS resolver, 
-just query::
+After that, and assuming the gateway is configured as the system DNS resolver, just query::
 
    $ dig +short www.test.co.uk._tldns.mydomain.invalid
    test.co.uk
@@ -135,10 +124,7 @@ just query::
 
 Public delegation
 -----------------
-I would not recommend doing this, but if the DNS server in the above 
-example is public, then 
-it is possible to delegate the domain publicly as well. Do this by adding
-an NS record for the domain to the parent zone file, pointing to the public IP of the . 
+I would not recommend doing this, but if the DNS server in the above example is public, then it is possible to delegate the domain publicly as well. Do this by adding an NS record for the domain to the parent zone file, pointing to the public IP of the .
 
 There's a demo service running with this configuration on::
 
@@ -150,13 +136,9 @@ Try it out (soon)!
 
 Hacking
 -------
-`JunkDNS` uses the excellent DNSPython_ library for all DNS magic and wire 
-conversions.
+`JunkDNS` uses the excellent DNSPython_ library for all DNS magic and wire conversions.
 
-Although the resolver module API should not be considered stable at all, adding 
-a new resolver only requires two functions and their implementation should be
-straightforward. The `resolvers/publicsuffix.py` module can be used as an example
-for now.  
+Although the resolver module API should not be considered stable at all, adding a new resolver only requires two functions and their implementation should be straightforward. The `resolvers/publicsuffix.py` module can be used as an example for now.
 
 .. image:: https://api.travis-ci.org/skion/junkdns.png
    :alt: Travis build status
@@ -168,7 +150,6 @@ for now.
 To do
 -----
 
-- Python 3 support
 - Make UDP server threaded too
 - Make servers use a thread pool
 - Add non-blocking gevent server option

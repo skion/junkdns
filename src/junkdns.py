@@ -134,7 +134,7 @@ def load_modules(path):
     modules = dict()
     for importer, name, _ in pkgutil.iter_modules([path]):
         pkgname = path + "." + name
-        module = importer.find_module(name).load_module(pkgname)
+        module = importer.find_module(pkgname).load_module(pkgname)
         modules[name] = module
     return modules
 
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     # load resolver modules
     resolvers = load_modules(RESOLVERS_PATH)
-    for name, module in resolvers.iteritems():
+    for name, module in resolvers.items():
         try:
             subparser = subparsers.add_parser(name=module.NAME,
                                               help=module.HELP,
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     DnsRequestHandler.origin = args.origin
 
     tcpserver = tcpthread = None
-    
+
     # tread out threaded tcp server
     if args.tcp:
         socketserver.ThreadingTCPServer.allow_reuse_address = True

@@ -134,19 +134,38 @@ def query(msg):
             break
 
         if suffix:
+            suffix += "."
+
             # answer section
-            # FIXME this needs a unicode / idna fix
-            rrset = dns.rrset.from_text(query.name, TTL,
-                   dns.rdataclass.IN, dns.rdatatype.PTR,
-                   suffix.encode("idna") + ".")
+            rdata = suffix
+            # https://github.com/rthalley/dnspython/issues/44
+            try:
+                # dnspython3
+                rrset = dns.rrset.from_text(query.name, TTL,
+                        dns.rdataclass.IN, dns.rdatatype.PTR,
+                        rdata)
+            except AttributeError:
+                # dnspython2
+                rrset = dns.rrset.from_text(query.name, TTL,
+                        dns.rdataclass.IN, dns.rdatatype.PTR,
+                        rdata.encode("idna"))
             res.answer.append(rrset)
 
             if SERVE_TXT:
                 # additional section
                 tld = query.name.split(2)[-1].to_text(omit_final_dot=True)
-                rrset = dns.rrset.from_text(suffix + ".", TTL,
-                        dns.rdataclass.IN, dns.rdatatype.TXT,
-                        '"see: http://en.wikipedia.org/wiki/.{}"'.format(tld))
+                rdata = '"see: http://en.wikipedia.org/wiki/.{}"'.format(tld)
+                # https://github.com/rthalley/dnspython/issues/44
+                try:
+                    # python3
+                    rrset = dns.rrset.from_text(suffix, TTL,
+                            dns.rdataclass.IN, dns.rdatatype.TXT,
+                            rdata)
+                except:
+                    # python2
+                    rrset = dns.rrset.from_text(suffix, TTL,
+                            dns.rdataclass.IN, dns.rdatatype.TXT,
+                            rdata.encode("latin1"))
                 res.additional.append(rrset)
 
     return res
