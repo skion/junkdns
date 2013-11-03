@@ -5,7 +5,7 @@ python:
 # command to install dependencies
 install:
   - "pip install -r requirements.txt --use-mirrors"
-  - "if [[ $TRAVIS_PYTHON_VERSION >= '3.0' ]]; then pip install -r requirements3.txt --use-mirrors; else pip install -r requirements2.txt --use-mirrors; fi"
+  - "if [[ $TRAVIS_PYTHON_VERSION < '3.0' ]]; then pip install -r requirements2.txt --use-mirrors; else pip install -r requirements3.txt --use-mirrors; fi"
 # command to run tests
 script: nosetests
 notifications:
