@@ -111,27 +111,53 @@ After that, and assuming the gateway is configured as the system DNS resolver, j
 
 `Unbound`_ is capable of this by means of a `stub-zone`::
 
-   do-not-query-localhost: no
-   domain-insecure: "_tldns.mydomain.invalid"
+   server:
+      # we do query the stub zone on localhost
+      do-not-query-localhost: no
+      
+      # ignore chain of trust
+      domain-insecure: "_tldns.mydomain.invalid"
+      
+   # junkdns server running here with option:
+   # --origin _tldns.mydomain.invalid
    stub-zone:
-           name: "_tldns.mydomain.invalid"
-           stub-addr: 127.0.0.1@5053
-           stub-prime: no
-           stub-first: no
+      name: "_tldns.mydomain.invalid"
+      stub-addr: 127.0.0.1@5053
+      stub-prime: no
+      stub-first: no
+
+There seems to be a bug_ in `Unbound` version 1.4.17, which can be worked around by replacing the `stub-zone` with a `forward-zone`.
 
 .. _Unbound: http://unbound.net/
+.. _bug: https://www.nlnetlabs.nl/bugs-script/show_bug.cgi?id=528
 
 
 Public delegation
 -----------------
-I would not recommend doing this, but if the DNS server in the above example is public, then it is possible to delegate the domain publicly as well. Do this by adding an NS record for the domain to the parent zone file, pointing to the public IP of the .
+I would not immediately recommend doing this, but if the DNS cache in the above 
+example is publicly accessible, then it is possible to delegate a domain to `JunkDNS` publicly as well.
+Do this by adding an NS record for the domain to the parent zone file, pointing to the public IP of the server,
+and adding the following configuration options to Unbound::
+
+   server:
+      # allow non-recursive (snoop) queries to world
+      # (otherwise queries through your ISP's recursor will fail)
+      access-control: 0.0.0.0/0 allow_snoop
+      access-control: 127.0.0.0/8 allow_snoop
+      access-control: ::0/0 allow_snoop
+      access-control: ::1 allow_snoop
+      access-control: ::ffff:127.0.0.1 allow_snoop
+
+      # refuse all queries except our zone
+      local-zone: "." deny
+      local-zone: "_tldns.mydomain.invalid" transparent
 
 There's a demo service running with this configuration on::
 
-   $ dig +short www.test.co.uk._tldns.dnsben.ch
+   $ dig +short www.test.co.uk._tldns.dnsben.ch PTR
    test.co.uk
 
-Try it out (soon)!
+Try it out!
 
 
 Hacking
